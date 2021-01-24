@@ -23,11 +23,11 @@ Control the podcast played in my phone, laptops through my voice input. Stop, Re
 
 2) Technical Aspect
 
-    - What does it mean to understand sound .. 
-    - Basics of Audio processing
+    - What does it mean to understand sound :+1:
+    - Basics of Audio processing  :+1: 
     - Could the problem be simpler in my case .. Could simple digital electornics get me by ?
     - Deep learning to understand patterns 
 
 
-    Still, this is a work in progress ... 
+Still, this is a work in progress ... 
 
