@@ -19,6 +19,7 @@ Control the podcast played in my phone, laptops through my voice input. Stop, Re
     https://www.samueldowling.com/2020/06/08/how-to-set-up-a-python-project-and-development-environment/
 
     - Working with a makefile    
+    https://stackabuse.com/how-to-write-a-makefile-automating-python-setup-compilation-and-testing/
     - Test, linters, style formatter, documentation, version    control ...
 
 2) Technical Aspect
