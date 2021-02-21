@@ -58,10 +58,15 @@ class RecordThread(threading.Thread):
                 # collect chunks: (recording_time * 44100) / 1024
                 max_range_interval = math.ceil(self.rate / self.chunk * self.recording_interval)
                 for i in range(0, max_range_interval):
-                    data = wavstream.read(self.chunk)
                     if i == max_range_interval - 1:
-                        cap_ = (max_range_interval * self.chunk) - (self.rate * self.recording_interval)
-                        data = data[:cap_]
+                        collected = 1024 * (max_range_interval-1)
+                        needed = self.rate * self.recording_interval
+                        extra_chunks = needed-collected
+                        assert extra_chunks > 0
+                        data = wavstream.read(extra_chunks)
+                        frames.append(data)
+                        continue
+                    data = wavstream.read(self.chunk)
                     frames.append(data)
 
                 print('Finished recording an interval ')
