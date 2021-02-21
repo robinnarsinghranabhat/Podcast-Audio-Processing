@@ -30,5 +30,12 @@ Control the podcast played in my phone, laptops through my voice input. Stop, Re
     - Deep learning to understand patterns 
 
 
-Still, this is a work in progress ... 
+Completed Till now : 
+- Data preparation (TODO : Automate audacity for trimming)
+- Threaded Inference
 
+Currently Working on :
+- Adding Audio Dataloaders
+- Dummy Run, check loss
+
+Remaining
