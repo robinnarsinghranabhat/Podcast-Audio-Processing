@@ -8,6 +8,7 @@ import threading
 import pyaudio
 import wave
 import time
+import math
 
 
 class RecordThread(threading.Thread):
@@ -16,15 +17,12 @@ class RecordThread(threading.Thread):
 
         threading.Thread.__init__(self)
 
+        self.audiofile, self.recording_interval = args
         self.bRecord = True
-        self.audiofile = args[0]
         self.chunk = 1024
         self.format = pyaudio.paInt16
         self.channels = 1
         self.rate = 44100
-        self.recording_interval = args[1]
-
-        self.audiofile,, self.sample_width,  self.filename, self.frames_to_write 
 
     # Defining a Class Variable
     save_name_counter = 0
@@ -41,10 +39,7 @@ class RecordThread(threading.Thread):
                                input=True,
                                frames_per_buffer=self.chunk)
 
-        
-        save_thread = SaveRecordingThread( (self.channels, audio.get_sample_size(self.format), self.rate) ) # noqa
-
-        if recording_interval is None:
+        if self.recording_interval is None:
             print('Recording silently .. :)')              
             while self.bRecord:
                 wavfile.writeframes(wavstream.read(self.chunk))
@@ -53,44 +48,35 @@ class RecordThread(threading.Thread):
             wavstream.close()
             audio.terminate()
         else:
-            print(f'Recording Silently for {recording_interval} seconds')
-            frames = []  # Initialize array to store frames
+            print(f'Recording and Saving at {self.recording_interval} seconds Gap') ## noqa
+            while self.bRecord:
+                frames = []  # Initialize array to store frames
 
-            # Soundcard mic intercepts audio as chunk of 1024 sample
-            # We need to collect total of recording_time * 44100 samples
-            # So for a recording_time seconds of audio, mic needs to
-            # collect chunks: (recording_time * 44100) / 1024
-            max_range_interval = int(self.rate / self.chunk * recording_interval)
-            for i in range(0, max_range_interval):
-                data = wavstream.read(self.chunk)
-                frames.append(data)
+                # Soundcard mic intercepts audio as chunk of 1024 sample
+                # We need to collect total of recording_time * 44100 samples
+                # So for a recording_time seconds of audio, mic needs to
+                # collect chunks: (recording_time * 44100) / 1024
+                max_range_interval = math.ceil(self.rate / self.chunk * self.recording_interval)
+                for i in range(0, max_range_interval):
+                    data = wavstream.read(self.chunk)
+                    if i == max_range_interval - 1:
+                        cap_ = (max_range_interval * self.chunk) - (self.rate * self.recording_interval)
+                        data = data[:cap_]
+                    frames.append(data)
 
-            print('Finished recording an interval ')
-            print('Saving the interval')
-
-            save_name = f'inference_{RecordThread.save_name_counter}.wav'
-
-            # wf = wave.open(filename, 'wb')
-            # wf.setnchannels(self.channels)
-            # wf.setsampwidth(audio.get_sample_size(self.format))
-            # wf.setframerate( self.rate )
-            # wf.writeframes(b''.join(frames))
-            # wf.close()
-            save_thread.run(save_name, frames)
-
-            # Update Class Variable
-            # Note , Class Varaible can only be updated by Class name
-
-            RecordThread.save_name_counter += 1
+                print('Finished recording an interval ')
+                print('Saving the interval')
+                save_name = f'inference_{RecordThread.save_name_counter}.wav'
+                save_thread = SaveRecordingThread(  self.channels, audio.get_sample_size(self.format), self.rate, save_name, frames  ) # noqa
+                save_thread.start()
 
     def stoprecord(self):
-        self.bRecord = False     
+        self.bRecord = False
 
 
 class SaveRecordingThread(threading.Thread):
     def __init__(self, *args):
         threading.Thread.__init__(self)
- 
         self.channels, self.sample_width, self.rate, self.filename, self.frames_to_write = args # noqa
 
     def run(self):
@@ -103,17 +89,21 @@ class SaveRecordingThread(threading.Thread):
         wf.writeframes(b''.join(self.frames_to_write))
         wf.close()
 
+        # Update Class Variable
+        # Note , Class Varaible can only be updated by Class name
+        RecordThread.save_name_counter += 1
+
 
 class TestThread(threading.Thread):
-    def __init__(self):
-        threading.Thread.__init__(self, *args)
+    def __init__(self, *args):
+        threading.Thread.__init__(self)
         self.thread_switch = True
-        self.outer_args = args
+        self.outer_args_1, self.outer_args_2 = args
 
     def run(self):
         while self.thread_switch:
-            print(f'Backround running . Got : {self.outer_args}')
-            time.sleep(4)
-                                                                                   
+            print(f'Backround running . Got : {self.outer_args_1, self.outer_args_2}')
+            # time.sleep(4)
+
     def terminate_thread(self):
         self.thread_switch = False

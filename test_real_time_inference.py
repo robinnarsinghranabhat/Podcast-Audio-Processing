@@ -1,22 +1,26 @@
 from real_time_inference import RecordThread, TestThread
 import time
 
-# record = RecordThread('sample_record.wav')
+record = RecordThread('sample_record.wav', 4)
+print(record.start())
 
-# print(record.run())
+print('Recording in background, printing in foreground ..')
+time.sleep(5)
 
-# print('Recording in vacxkground, printing in foreground ..')
-# time.sleep(7)
+record.stoprecord()
+print('Recording Stopped')
 
-# record.stoprecord()
-# print('Recording Stopped')
 
-test = TestThread()
-test.start(3)
 
-print('out of thread ... computation')
-time.sleep(2)
-print('rast comp[leted')
 
-print('stopping thread')
-test.terminate_thread()
+# SAMPLE TEST CLASS USING THREADS ##
+
+# test = TestThread(12, 24)
+# test.start()
+
+# print('out of thread ... computation')
+# time.sleep(2)
+# print('dummy task completed')
+
+# print('stopping thread')
+# test.terminate_thread()
