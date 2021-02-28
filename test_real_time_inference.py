@@ -1,7 +1,7 @@
 from real_time_inference import RecordThread, TestThread
 import time
 
-record = RecordThread('sample_record.wav', 4)
+record = RecordThread('sample_record.wav', 8)
 print(record.start())
 
 print('Recording in background, printing in foreground ..')
