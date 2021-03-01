@@ -4,6 +4,7 @@
 # ## Start Feature Extraction from the collected Dataset
 
 from src.settings import DATA_DIR, PROCESSED_DIR
+from src.utils import norm_spec
 import os
 import pandas as pd
 import librosa
@@ -11,12 +12,12 @@ import librosa
 import numpy as np
 import matplotlib.pyplot as plt
 
-os.chdir("../")
+# os.chdir("../")
 
-
+# ## Model Building
+from src.model import Net
 import torch
-
-torch.cuda.is_available()
+import torch.nn as nn
 
 
 from plot_helper import PlotHelp
@@ -57,20 +58,6 @@ def get_melspectrogram_db(
     )
     spec_db = librosa.power_to_db(spec, top_db=top_db)
     return spec_db
-
-
-def spec_to_image(spec, eps=1e-6):
-    mean = spec.mean()
-    std = spec.std()
-    spec_norm = (spec - mean) / (std + eps)
-    spec_min, spec_max = spec_norm.min(), spec_norm.max()
-    spec_scaled = 255 * (spec_norm - spec_min) / (spec_max - spec_min)
-    spec_scaled = spec_scaled.astype(np.uint8)
-    return spec_scaled
-
-
-def norm_spec(spec):
-    return (spec - spec.min()) / (spec.max() - spec.min())
 
 
 plot_help = PlotHelp()
@@ -138,7 +125,7 @@ def check_example(sound):
     print("Playing Stopped")
 
 
-check_example(pos_sound)
+# check_example(pos_sound)
 
 
 # ## Sanity Check : Take in an audio input and take a look at spectrogram
@@ -198,7 +185,7 @@ class AudioLoader(Dataset):
         label = self.csv_file["label"].iloc[idx]
         return data, label
 
-
+## Transformation using Librosa
 audio_transformation = transforms.Compose(
     [
         lambda x: librosa.feature.melspectrogram(
@@ -210,6 +197,14 @@ audio_transformation = transforms.Compose(
         # lambda x: Tensor(x)
     ]
 )
+
+## Transformation using torch audio
+import torchaudio
+import pdb; pdb.set_trace()
+waveform, sr = librosa.load(os.path.join( file_path, 'train',  meta_data_train.sample().filename.item()), sr=44100)
+
+
+
 
 # todo: multiprocessing, padding data
 trainloader = DataLoader(
@@ -229,60 +224,8 @@ testloader = DataLoader(
     num_workers=0,
 )
 
-
-# ## Model Building
-
-
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
-
-
-class Net(nn.Module):
-    def __init__(self):
-        super(Net, self).__init__()
-
-        self.conv1 = nn.Conv2d(1, 8, 3)  ## inchannel , outchannel , kernel size ..
-        self.pool1 = nn.MaxPool2d(2, stride=2)
-        self.conv1_bn = nn.BatchNorm2d(8)
-
-        self.drp = nn.Dropout2d(0.1)
-
-        self.conv2 = nn.Conv2d(8, 16, 3)
-        self.pool2 = nn.MaxPool2d(4, stride=2)
-        self.conv2_bn = nn.BatchNorm2d(16)
-
-        self.conv3 = nn.Conv2d(16, 32, 5)
-        self.conv3_bn = nn.BatchNorm2d(32)
-
-        self.fc1 = nn.Linear(32 * 12 * 82, 32)
-        self.fc2 = nn.Linear(32, 1)
-
-    def forward(self, x):
-        x = self.conv1_bn(self.pool1(F.relu(self.conv1(x))))
-        x = self.drp(x)
-
-        x = self.conv2_bn(self.pool1(F.relu(self.conv2(x))))
-        x = self.drp(x)
-
-        x = self.conv3_bn(self.pool2(F.relu(self.conv3(x))))
-        x = self.drp(x)
-        # x = self.drp(self.pool1(F.relu(self.conv4(x))))
-        # x = self.drp(self.pool2(F.relu(self.conv5(x))))
-        # size = torch.flatten(x).shape[0]
-        x = x.view(-1, 32 * 12 * 82)
-        # x = x.unsqueeze_(1)
-        # print(x.shape)
-        x = F.relu(self.fc1(x))
-        x = self.fc2(x)
-        return torch.sigmoid(x)
-
-
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-print(device)
-
-
-# device = 'cpu'
+print('Device to train : ', device)
 
 
 # defining the model
