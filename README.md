@@ -33,8 +33,9 @@ Control the podcast played in my phone, laptops through my voice input. Stop, Re
 Completed Till now : 
 - Data preparation (TODO : Automate audacity for trimming)
 - Threaded Inference
-
-Currently Working on :
 - Adding Audio Dataloaders
 - Dummy Run, check loss
 
+
+Currently Working on :
+- Data Augmentaion with Torch Audio
