@@ -101,51 +101,6 @@ potential_range_in_freq_domain = [
 
 plot_help.plot_examples(mel_spec_pos_norm, potential_range_in_freq_domain)
 
-
-mel_spec_neg_norm[0].shape
-
-
-from pydub.playback import play
-from pydub import AudioSegment
-
-## Check one such example for Verification
-pos_sound = AudioSegment.from_wav(
-    os.path.join(train_path, pos_examples.iloc[2].filename)
-)
-neg_sound = AudioSegment.from_wav(
-    os.path.join(train_path, neg_examples.iloc[0].filename)
-)
-
-
-def check_example(sound):
-
-    ## playing positive example
-    print("Playing ...")
-    play(sound)
-    print("Playing Stopped")
-
-
-# check_example(pos_sound)
-
-
-# ## Sanity Check : Take in an audio input and take a look at spectrogram
-
-
-# ## my personal recording
-# import time
-# record = RecordThread('sample_record.wav', 8)
-# record.start()
-# time.sleep(0.2)
-# record.stoprecord()
-
-# print(get_melspectrogram_db( 'inference_0.wav' , 44100  ).shape)
-
-# plot_help.plot_examples( [norm_spec(get_melspectrogram_db( 'inference_0.wav' , 44100  ))] )
-
-
-# ## Working with Audio Dataloaders and Transformations
-
-
 from torch import Tensor
 from torchvision import transforms
 from torch.utils.data import DataLoader
@@ -185,9 +140,10 @@ class AudioLoader(Dataset):
         label = self.csv_file["label"].iloc[idx]
         return data, label
 
-## Transformation using Librosa
+
+# Transformation using Librosa
 audio_transformation = transforms.Compose(
-    [
+    [   
         lambda x: librosa.feature.melspectrogram(
             x, sr=44100, n_fft=2048, hop_length=512, n_mels=128, fmin=20, fmax=8300
         ),  # MFCC
@@ -198,18 +154,26 @@ audio_transformation = transforms.Compose(
     ]
 )
 
-## Transformation using torch audio
-import torchaudio
-import pdb; pdb.set_trace()
-waveform, sr = librosa.load(os.path.join( file_path, 'train',  meta_data_train.sample().filename.item()), sr=44100)
-
-
+# Transformation in Training Set
+from audio_transformations import waveform_augment
+training_transformation = transforms.Compose(
+    [
+        lambda x: waveform_augment(x, 44100),
+        lambda x: librosa.feature.melspectrogram(
+            x, sr=44100, n_fft=2048, hop_length=512, n_mels=128, fmin=20, fmax=8300
+        ),  # MFCC
+        lambda x: librosa.power_to_db(x, top_db=80),
+        lambda x: norm_spec(x),
+        lambda x: x.reshape(1, 128, 690)
+        # lambda x: Tensor(x)
+    ]
+)
 
 
 # todo: multiprocessing, padding data
 trainloader = DataLoader(
     AudioLoader(
-        meta_data=meta_data_train, transform=audio_transformation, mode="train"
+        meta_data=meta_data_train, transform=training_transformation, mode="train"
     ),
     batch_size=32,
     shuffle=True,
