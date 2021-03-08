@@ -35,7 +35,17 @@ Completed Till now :
 - Threaded Inference
 - Adding Audio Dataloaders
 - Dummy Run, check loss
-
-
-Currently Working on :
 - Data Augmentaion with Torch Audio
+
+
+Latest Update : 
+Apparaenlty Model cannot find the pattern. Model is not learning. Currently using dialated convolution and went with kernel size of 7
+
+For Rapid test, Idea : Loaded the Entier folder in google drive. Rapid Test Training there ! 
+
+Other Ways : Train on the GRU based model Architecture on Coursera
+
+Potential : Check Spectrogram masking idea in visual
+
+
+
