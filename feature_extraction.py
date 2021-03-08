@@ -19,6 +19,11 @@ from src.model import Net
 import torch
 import torch.nn as nn
 
+from torch import Tensor
+from torchvision import transforms
+from torch.utils.data import DataLoader
+from torch.utils.data.dataset import Dataset
+
 
 from plot_helper import PlotHelp
 from real_time_inference import RecordThread
@@ -101,11 +106,6 @@ potential_range_in_freq_domain = [
 
 plot_help.plot_examples(mel_spec_pos_norm, potential_range_in_freq_domain)
 
-from torch import Tensor
-from torchvision import transforms
-from torch.utils.data import DataLoader
-from torch.utils.data.dataset import Dataset
-
 
 meta_data[:1701].shape, meta_data[1701:].shape
 
@@ -170,12 +170,13 @@ training_transformation = transforms.Compose(
 )
 
 
+BATCH_SIZE = 8
 # todo: multiprocessing, padding data
 trainloader = DataLoader(
     AudioLoader(
         meta_data=meta_data_train, transform=training_transformation, mode="train"
     ),
-    batch_size=32,
+    batch_size=BATCH_SIZE,
     shuffle=True,
     num_workers=0,
 )
@@ -183,7 +184,7 @@ trainloader = DataLoader(
 # todo: multiprocessing, padding data
 testloader = DataLoader(
     AudioLoader(meta_data=meta_data_test, transform=audio_transformation, mode="test"),
-    batch_size=32,
+    batch_size=BATCH_SIZE,
     shuffle=True,
     num_workers=0,
 )
@@ -234,7 +235,7 @@ for epoch in range(50):  # loop over the dataset multiple times
         running_loss += loss.item()
         training_acc.append(calc_accuracy(outputs, labels))
 
-        if i % 10 == 0:  #
+        if i % 50 == 0:  #
             curr_training_loss = sum(training_acc) / len(training_acc)
             print(
                 f"At {i+1}th iter, Epoch {epoch+1} :  Loss accumulated upto : {running_loss} || Running Train Accuracy : {curr_training_loss}"
