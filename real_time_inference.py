@@ -96,7 +96,7 @@ class SaveRecordingThread(threading.Thread):
 
         # Update Class Variable
         # Note , Class Varaible can only be updated by Class name
-        RecordThread.save_name_counter += 1
+        # RecordThread.save_name_counter += 1
 
 
 class TestThread(threading.Thread):
