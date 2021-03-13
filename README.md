@@ -39,13 +39,40 @@ Completed Till now :
 
 
 Latest Update : 
-Apparaenlty Model cannot find the pattern. Model is not learning. Currently using dialated convolution and went with kernel size of 7
 
-For Rapid test, Idea : Loaded the Entier folder in google drive. Rapid Test Training there ! 
+- Augmentation : Modify Gain of Traning set during augmentation and data Preparation (pydub part) <--
+- Apparaenlty Model cannot find the pattern. Model is not learning. Currently using dialated convolution and went with kernel size of 7
+- For Rapid test, Idea : Loaded the Entier folder in google drive. Rapid Test Training there ! 
+- Other Ways : Train on the GRU based model Architecture on Coursera <-- Just use this architecture
 
-Other Ways : Train on the GRU based model Architecture on Coursera
+- Potential : Check Spectrogram masking idea in visual
 
-Potential : Check Spectrogram masking idea in visual
+
+
+Traning Updates and todo : 
+Updates
+- With larger kernel size, than used in normal 28*28 image, and some BatchNorm, Model is finally learning .
+- But, is my model really catching that pattern ??  like, is it really responding to activate and not anything else in that whole spectrogram.  
+  For this, Now force model to output multiple sigmoiuds
+- What if, Model is learning, at sudden spike from my word, and not activate in general. So I need to put negative snippet of my vocies at negative examples to blur out this possiblity
+
+Todo
+- Train in Colab, Larger model, larger dataset, Add Negative keywords and my own random noise in negative examples
+- Larger model, More augmentation FreqMask, 
+- Internal Torch for Augmentation, and more workers in augmentation 
+- 
+- Add other keywords like, Pause, Note to get Detected. 
+- Make Traning more difficult. Like, p?0.8 and not 0.5 to account for positive detection in training phase.
+
+
+Inference Update : Make inference more real timish
+
+- MultiThreading is not really working. Basically, it's not contuonusly saving recordings in background in real time. Have to try MULTIPROCESSING to just deposit the inputs / Saving the inputs. And while our Pytorch loads it, handle exception / sleep timer if it's loading incompletely saved audio. So, like, 
+
+    - Make two processes, one records and saves , while, other infers
+    - Put them in sync such that, p1 = pool(Record) , p2 = pool(INfer) , p1.join() p2.join() .. don't know
+
+- 
 
 
 
