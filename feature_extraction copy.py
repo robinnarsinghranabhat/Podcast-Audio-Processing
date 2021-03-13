@@ -25,10 +25,6 @@ from torch.utils.data import DataLoader
 from torch.utils.data.dataset import Dataset
 
 
-from plot_helper import PlotHelp
-from real_time_inference import RecordThread
-
-
 file_path = PROCESSED_DIR
 meta_data = pd.read_csv(os.path.join(DATA_DIR, "meta_data.csv"))
 
@@ -41,35 +37,6 @@ meta_data["label"] = ~meta_data.start_time.isna()
 meta_data["label"] = meta_data["label"].astype(int)
 
 
-def get_melspectrogram_db(
-    file_path,
-    sr=44100,
-    n_fft=2048,
-    hop_length=512,
-    n_mels=128,
-    fmin=20,
-    fmax=8300,
-    top_db=80,
-):
-    wav, sr = librosa.load(file_path, sr=sr)
-    spec = librosa.feature.melspectrogram(
-        wav,
-        sr=sr,
-        n_fft=n_fft,
-        hop_length=hop_length,
-        n_mels=n_mels,
-        fmin=fmin,
-        fmax=fmax,
-    )
-    spec_db = librosa.power_to_db(spec, top_db=top_db)
-    return spec_db
-
-
-plot_help = PlotHelp()
-
-
-# ## Check the Traning Example Visually
-
 
 train_path = os.path.join(PROCESSED_DIR, "train")
 test_path = os.path.join(PROCESSED_DIR, "test")
@@ -77,38 +44,7 @@ test_path = os.path.join(PROCESSED_DIR, "test")
 meta_data_train = meta_data[:1701]
 meta_data_test = meta_data[1701:]
 
-pos_examples = meta_data_train[meta_data_train.label == 1].sample(4)
-neg_examples = meta_data_train[meta_data_train.label == 0].sample(4)
-
-mel_spec_pos = [
-    get_melspectrogram_db(os.path.join(train_path, pos_example.filename), 44100)
-    for _, pos_example in pos_examples.iterrows()
-]
-mel_spec_pos_norm = [norm_spec(i) for i in mel_spec_pos]
-
-mel_spec_neg = [
-    get_melspectrogram_db(os.path.join(train_path, neg_example.filename), 44100)
-    for _, neg_example in neg_examples.iterrows()
-]
-mel_spec_neg_norm = [norm_spec(i) for i in mel_spec_neg]
-
-mel_scale_max = mel_spec_pos[0].shape[1]
-time_scale_max = 8000  ## ms
-
-potential_range_in_freq_domain = [
-    (
-        mel_scale_max * pos_example.start_time / time_scale_max,
-        mel_scale_max * pos_example.end_time / time_scale_max,
-    )
-    for _, pos_example in pos_examples.iterrows()
-]
-
-
-plot_help.plot_examples(mel_spec_pos_norm, potential_range_in_freq_domain)
-
-
-meta_data[:1701].shape, meta_data[1701:].shape
-
+# Making Data loader
 
 class AudioLoader(Dataset):
     def __init__(self, meta_data, transform=None, mode="train"):
@@ -140,21 +76,72 @@ class AudioLoader(Dataset):
         label = self.csv_file["label"].iloc[idx]
         return data, label
 
+# import torchaudio
+# # Pytorch Transformation
+# torch_audio_transformation = transforms.Compose(
+#     lambda x: torchaudio.transforms.MelSpectrogram(
+#                sample_rate=44100, n_mels=128, n_fft=2048, f_max=12000, hop_length=512),
+#     lambda x : torchaudio.transforms.AmplitudeToDB(top_db=80)
+# )
 
-# Transformation using Librosa
-audio_transformation = transforms.Compose(
-    [   
+
+BATCH_SIZE = 10
+
+##################### NORMALIZATION OF SPECTROGRAM ###########################
+normalization_transformation = transforms.Compose(
+    [
+        # lambda x: waveform_augment(x, 44100),
         lambda x: librosa.feature.melspectrogram(
             x, sr=44100, n_fft=2048, hop_length=512, n_mels=128, fmin=20, fmax=8300
         ),  # MFCC
         lambda x: librosa.power_to_db(x, top_db=80),
-        # lambda x: norm_spec(x),
         lambda x: x.reshape(1, 128, 690)
-        # lambda x: Tensor(x)
     ]
 )
 
-# Transformation in Training Set
+LIMIT_TRAIN = 100000
+
+normalization_loader = DataLoader(
+    AudioLoader(
+        meta_data=meta_data_train[:LIMIT_TRAIN], transform=normalization_transformation, mode="train"
+    ),
+    batch_size=32,
+    shuffle=True,
+    num_workers=0,
+)
+
+# Get GLobal Normalization Params :
+print('Calculating Global MEAN and STD .. takes a while..')
+mean_spec = []
+std_spec = []
+for i, data in enumerate(normalization_loader, 0):
+    # get the inputs; data is a list of [inputs, labels]
+    inputs, labels = data[0], data[1]
+    batch_mean = torch.mean(inputs)
+    batch_std = torch.std(inputs)
+    mean_spec.append(batch_mean.numpy())
+    std_spec.append(batch_std.numpy())
+
+try:
+    plt.plot(mean_spec, kind='hist')
+    plt.show()
+    plt.plot(std_spec, kind='hist')
+    plt.show()
+except:
+    pass
+
+
+global_mean = sum(mean_spec) / len(mean_spec)
+global_std = sum(std_spec) / len(std_spec)
+
+global_normalization_dict = {'global_mean': global_mean, 'global_std': global_std}
+
+print(global_normalization_dict)
+print('Saving global normalization paramaters for inference .. ')
+import pickle
+with open('normalizer.pickle', 'wb') as handle:
+    pickle.dump(global_normalization_dict, handle, protocol=pickle.HIGHEST_PROTOCOL)
+     
 from audio_transformations import waveform_augment
 training_transformation = transforms.Compose(
     [
@@ -163,27 +150,36 @@ training_transformation = transforms.Compose(
             x, sr=44100, n_fft=2048, hop_length=512, n_mels=128, fmin=20, fmax=8300
         ),  # MFCC
         lambda x: librosa.power_to_db(x, top_db=80),
-        # lambda x: norm_spec(x),
+        lambda x: (x - global_mean) / global_std,
         lambda x: x.reshape(1, 128, 690)
         # lambda x: Tensor(x)
     ]
 )
 
-
-BATCH_SIZE = 8
 # todo: multiprocessing, padding data
 trainloader = DataLoader(
     AudioLoader(
-        meta_data=meta_data_train, transform=training_transformation, mode="train"
+        meta_data=meta_data_train[:LIMIT_TRAIN], transform=training_transformation, mode="train"
     ),
     batch_size=BATCH_SIZE,
     shuffle=True,
     num_workers=0,
 )
 
+audio_transformation = transforms.Compose(
+    [   
+        lambda x: librosa.feature.melspectrogram(
+            x, sr=44100, n_fft=2048, hop_length=512, n_mels=128, fmin=20, fmax=8300
+        ),  # MFCC
+        lambda x: librosa.power_to_db(x, top_db=80),
+        lambda x: (x - global_mean) / global_std,
+        lambda x: x.reshape(1, 128, 690)
+    ]
+)
+
 # todo: multiprocessing, padding data
 testloader = DataLoader(
-    AudioLoader(meta_data=meta_data_test, transform=audio_transformation, mode="test"),
+    AudioLoader(meta_data=meta_data_test[:LIMIT_TRAIN], transform=audio_transformation, mode="test"),
     batch_size=BATCH_SIZE,
     shuffle=True,
     num_workers=0,
@@ -264,5 +260,5 @@ for epoch in range(50):  # loop over the dataset multiple times
         f"Training Accuracy {curr_training_loss} || Validation Accuracy {curr_val_loss}"
     )
 
-    print(f"Saving at Epoch  {epoch} ..")
+    print(f"SAving at epoch {epoch} ")
     torch.save(model.state_dict(), "my_dummy_model")
