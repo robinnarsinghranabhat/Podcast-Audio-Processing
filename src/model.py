@@ -71,8 +71,8 @@ class Net(nn.Module):
         self.conv4 = nn.Conv2d(64, 64, 11, dilation=1, stride=2)
         self.conv4_bn = nn.BatchNorm2d(64)
 
-        self.fc1 = nn.Linear(64*3*26, 64)
-        self.fc2 = nn.Linear(64, 1)
+        self.fc1 = nn.Linear(64*3*12, 64)
+        self.fc2 = nn.Linear(64, 3)
 
     def forward(self, x):
         x = self.conv1_bn(self.pool1(F.relu(self.conv1(x))))
@@ -88,13 +88,13 @@ class Net(nn.Module):
         x = self.drp(x)
 
         # import pdb ; pdb.set_trace()
-        x = x.view(-1, 64*3*26)
+        x = x.view(-1, 64*3*12)
         x = F.relu(self.fc1(x))
         x = self.fc_drp(x)
 
         x = self.fc2(x)
 
-        return torch.sigmoid(x)
+        return x
 
 
 class DilatedCausalConv1d(nn.Module):
