@@ -33,7 +33,7 @@ def calc_accuracy(outputs, labels):
     return correct_pred / total_examples
 
 
-for epoch in range(50):  # loop over the dataset multiple times
+for epoch in range(100):  # loop over the dataset multiple times
 
     model.train()
     running_loss = 0.0

@@ -6,12 +6,12 @@ from src.model import Net
 import torch
 device = 'cpu'
 model = Net()
-model.load_state_dict(torch.load('data\my_dummy_model'))
+model.load_state_dict(torch.load('new_model'))
 model.eval()
 
 
 # THIS PUTS LATEST AUDIO COPY IN THE BACKGROUND
-record = RecordThread('sample_record.wav', 8)
+record = RecordThread('sample_record.wav', 4)
 print(record.start())
 
 print('Recording in background, infering in foreground ..')
@@ -36,7 +36,7 @@ audio_transformation = transforms.Compose(
         ),  # MFCC
         lambda x: librosa.power_to_db(x, top_db=80),
         lambda x: (x - norm_dict['global_mean']) / norm_dict['global_std'],
-        lambda x: x.reshape(1, 128, 690)
+        lambda x: x.reshape(1, x.shape[0], x.shape[1])
     ]
 )
 
@@ -47,21 +47,33 @@ prev_data = None
 while True:
     try:
         data, sr = librosa.load('inference_0.wav', sr=44100)
-        if prev_data is not None and all(prev_data == data):
-            continue
-        prev_data = data.copy()
+        # if prev_data is not None and all(prev_data == data):
+        #     continue
+        # prev_data = data.copy()
 
         data = audio_transformation(data)
-        data = Tensor(data.reshape(-1, 1, 128, 690))
-        out = model(data).item()
+        data = Tensor(data.reshape(-1, 1, 128, 345))
+
+        out = model(data)
+        out = torch.nn.functional.softmax(out)
+        out_ind = torch.argmax(out).item()
+        out_val = torch.max(out).item()
         # print(out)
+        # import pdb; pdb.set_trace()
+        if out_ind == 1 and out_val > 0.9: 
+            print('Started')
+            time.sleep(0.5)
 
-        if out > 0.75: 
-            print('Video Paused')
-
+        if out_ind==2 and out_val > 0.9:
+            print('ACtivated')
+            time.sleep(0.5)
+        
+        print(out_ind, out_val)
+        time.sleep(2)
+    
     except:
-        # print('EXCEPTION GRACEFULLY HANDLED')
         continue
+
         
         
         

@@ -11,7 +11,7 @@ from torch.utils.data import DataLoader
 from audio_transformations import waveform_augment
 from src.settings import PROCESSED_DIR, DATA_DIR
 
-BATCH_SIZE = 20
+BATCH_SIZE = 16
 
 
 class AudioLoader(Dataset):
@@ -21,9 +21,9 @@ class AudioLoader(Dataset):
         self.audio_data_dir = os.path.join(PROCESSED_DIR, self.mode) 
         self.meta_data = pd.read_csv(os.path.join(DATA_DIR, 'meta_data.csv'))
         if self.mode == 'train':
-            self.meta_data = self.meta_data[:2001]
+            self.meta_data = self.meta_data[:2001] ## 2001
         else:
-            self.meta_data = self.meta_data[2001:]
+            self.meta_data = self.meta_data[2001:] ## 2001
         self.transform = transform
 
     def __len__(self):
@@ -57,6 +57,7 @@ if 'normalizer.pickle' in os.listdir('.'):
         norm_dict = pickle.load(handle)
 else:
     from get_normalization_params import calculate_norm_params
+    print('Calculating normalizer')
     calculate_norm_params()
     with open('normalizer.pickle', 'rb') as handle:
         norm_dict = pickle.load(handle)
