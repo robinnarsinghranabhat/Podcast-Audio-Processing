@@ -35,9 +35,12 @@ def calculate_metrics(outputs, labels):
     acc = correct_pred / total_examples
 
     # Confusion Matrix
-    predicted = predicted.to("cpu").numpy()
-    labels = labels.to("cpu").numpy()
-    conf_mat = confusion_matrix(labels, predicted)
+    try:
+        predicted = predicted.to("cpu").numpy()
+        labels = labels.to("cpu").numpy()
+        conf_mat = confusion_matrix(labels, predicted)
+    except:
+        import pdb; pdb.set_trace()
 
     return {"accuracy": acc, "confusion_matrix": conf_mat}
 
@@ -86,7 +89,7 @@ for epoch in range(100):  # loop over the dataset multiple times
         # labels = labels.type_as(outputs)
         loss_val = criterion(output_val, labels)
         val_loss += loss_val.item()
-        val_metrics = calculate_metrics(outputs, labels)
+        val_metrics = calculate_metrics(output_val, labels)
         val_acc.append(val_metrics["accuracy"])
 
     curr_training_loss = sum(training_acc) / len(training_acc)
@@ -98,7 +101,7 @@ for epoch in range(100):  # loop over the dataset multiple times
     print(
         f"Training Accuracy {curr_training_loss} || Validation Accuracy {curr_val_loss}"
     )
-    print("Confusion Matrix is :", val_metrics["confusion_matrix"])
+    print("Confusion Matrix is : \n", val_metrics["confusion_matrix"])
 
     print(f"Saving at epoch {epoch} ")
     torch.save(model.state_dict(), MODEL_LOC)

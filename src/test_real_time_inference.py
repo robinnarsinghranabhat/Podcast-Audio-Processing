@@ -4,10 +4,11 @@ import torch
 
 from real_time_inference import RecordThread, TestThread
 from src.model import Net
+from src.settings import MODEL_LOC
 
 device = "cpu"
 model = Net()
-model.load_state_dict(torch.load("new_model"))
+model.load_state_dict(torch.load(MODEL_LOC))
 model.eval()
 
 
