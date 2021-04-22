@@ -8,9 +8,9 @@ class PlotHelp(object):
     def plot_examples(self, examples, potential_labels=None):
 
         """
-            examples : List of Mel Spectrogrames of audio data
-            potential_labels : If not None, we take the supplied examples as
-            Positive cases where 'Activate' is Present
+        examples : List of Mel Spectrogrames of audio data
+        potential_labels : If not None, we take the supplied examples as
+        Positive cases where 'Activate' is Present
         """
 
         if potential_labels:
@@ -22,11 +22,11 @@ class PlotHelp(object):
         fig, ax = plt.subplots(nrows, ncols, figsize=(24 * nrows, 12))
 
         if nrows == 1:
-            ax.imshow(examples[0] )
+            ax.imshow(examples[0])
             if potential_labels:
                 start, end = potential_labels[0]
-                ax.axvline(start, color='r')
-                ax.axvline(end, color='r')
+                ax.axvline(start, color="r")
+                ax.axvline(end, color="r")
             plt.show()
 
         else:
@@ -34,8 +34,8 @@ class PlotHelp(object):
                 ax[row].imshow(examples[row])
                 if potential_labels:
                     start, end = potential_labels[row]
-                    ax[row].axvline(start, color='r')
-                    ax[row].axvline(end, color='r')
+                    ax[row].axvline(start, color="r")
+                    ax[row].axvline(end, color="r")
 
-            plt.title('Examples')
+            plt.title("Examples")
             plt.show()

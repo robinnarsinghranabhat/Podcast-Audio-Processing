@@ -3,30 +3,28 @@
 
 # ## Start Feature Extraction from the collected Dataset
 
-from src.settings import DATA_DIR, PROCESSED_DIR
-from src.utils import norm_spec
 import os
-import pandas as pd
+
 import librosa
-
-import numpy as np
 import matplotlib.pyplot as plt
-
-# os.chdir("../")
-
-# ## Model Building
-from src.model import Net
+import numpy as np
+import pandas as pd
 import torch
 import torch.nn as nn
-
 from torch import Tensor
-from torchvision import transforms
 from torch.utils.data import DataLoader
 from torch.utils.data.dataset import Dataset
-
+from torchvision import transforms
 
 from plot_helper import PlotHelp
 from real_time_inference import RecordThread
+
+# ## Model Building
+from src.model import Net
+from src.settings import DATA_DIR, PROCESSED_DIR
+from src.utils import norm_spec
+
+# os.chdir("../")
 
 
 file_path = PROCESSED_DIR
@@ -143,7 +141,7 @@ class AudioLoader(Dataset):
 
 # Transformation using Librosa
 audio_transformation = transforms.Compose(
-    [   
+    [
         lambda x: librosa.feature.melspectrogram(
             x, sr=44100, n_fft=2048, hop_length=512, n_mels=128, fmin=20, fmax=8300
         ),  # MFCC
@@ -156,6 +154,7 @@ audio_transformation = transforms.Compose(
 
 # Transformation in Training Set
 from audio_transformations import waveform_augment
+
 training_transformation = transforms.Compose(
     [
         lambda x: waveform_augment(x, 44100),
@@ -190,7 +189,7 @@ testloader = DataLoader(
 )
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-print('Device to train : ', device)
+print("Device to train : ", device)
 
 
 # defining the model
