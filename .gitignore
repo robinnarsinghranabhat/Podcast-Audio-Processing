@@ -2,3 +2,4 @@ setup.cfg
 my_dummy_model
 inference*
 src/__pycache__
+**/.ipynb_checkpoints/
