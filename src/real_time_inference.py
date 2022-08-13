@@ -6,26 +6,29 @@
 
 import math
 import threading
-import time
 import wave
+from isort import file
 
 import pyaudio
 
 
 class RecordThread(threading.Thread):
-    def __init__(self, *args):
+
+    # Defining a Class Variable
+    save_name_counter = 0
+
+    def __init__(self, filename, recording_interval, rate):
 
         threading.Thread.__init__(self)
 
-        self.audiofile, self.recording_interval = args
+        self.audiofile = filename
+        self.recording_interval = recording_interval
         self.bRecord = True
         self.chunk = 1024
         self.format = pyaudio.paInt16
         self.channels = 1
-        self.rate = 44100
+        self.rate = rate
 
-    # Defining a Class Variable
-    save_name_counter = 0
 
     def run(self):
         audio = pyaudio.PyAudio()
@@ -50,9 +53,9 @@ class RecordThread(threading.Thread):
             wavstream.close()
             audio.terminate()
         else:
-            print(
-                f"Recording and Saving at {self.recording_interval} seconds Gap"
-            )  ## noqa
+            # print(
+            #     f"Recording and Saving at {self.recording_interval} seconds Gap"
+            # )  ## noqa
             while self.bRecord:
                 frames = []  # Initialize array to store frames
 
@@ -75,8 +78,8 @@ class RecordThread(threading.Thread):
                     data = wavstream.read(self.chunk)
                     frames.append(data)
 
-                print("Finished recording an interval ")
-                print("Saving the interval")
+                # print("Finished recording an interval ")
+                # print("Saving the interval")
                 save_name = f"inference_{RecordThread.save_name_counter}.wav"
                 save_thread = SaveRecordingThread(
                     self.channels,

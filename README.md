@@ -39,11 +39,12 @@ Completed Till now :
 
 
 Latest Update : 
-
-- Augmentation : Modify Gain of Traning set during augmentation and data Preparation (pydub part) <--
-- Apparaenlty Model cannot find the pattern. Model is not learning. Currently using dialated convolution and went with kernel size of 7
-- For Rapid test, Idea : Loaded the Entier folder in google drive. Rapid Test Training there ! 
-- Other Ways : Train on the GRU based model Architecture on Coursera <-- Just use this architecture
+- [+1] Merge audio samples with variable Gains 
+- [] Augmentation : Modify Gain of Traning set during augmentation  (pydub part) 
+    - Try using Pytorch for this.
+- [] For Rapid test, Idea : Loaded the Entier folder in google drive. Rapid Test Training there ! 
+- [] Apparaenlty Model cannot find the pattern. Model is not learning. Currently using dialated convolution and went with kernel size of 7
+- [] Other Ways : Train on the GRU based model Architecture on Coursera <-- Just use this architecture
 
 - Potential : Check Spectrogram masking idea in visual
 

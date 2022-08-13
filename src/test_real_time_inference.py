@@ -4,11 +4,11 @@ import torch
 
 from real_time_inference import RecordThread, TestThread
 from src.model import Net
-from src.settings import MODEL_LOC
+from src.settings import MODEL_DATA_LOC
 
 device = "cpu"
 model = Net()
-model.load_state_dict(torch.load(MODEL_LOC))
+model.load_state_dict(torch.load(MODEL_DATA_LOC / ""))
 model.eval()
 
 
@@ -18,13 +18,6 @@ print(record.start())
 
 print("Recording in background, infering in foreground ..")
 # # time.sleep(20)
-
-
-## load the latest global mean and variance
-import pickle
-
-with open("normalizer.pickle", "rb") as handle:
-    norm_dict = pickle.load(handle)
 
 
 ## load the latest chunk of audio input :
@@ -38,7 +31,6 @@ audio_transformation = transforms.Compose(
             x, sr=44100, n_fft=2048, hop_length=512, n_mels=128, fmin=20, fmax=8300
         ),  # MFCC
         lambda x: librosa.power_to_db(x, top_db=80),
-        lambda x: (x - norm_dict["global_mean"]) / norm_dict["global_std"],
         lambda x: x.reshape(1, x.shape[0], x.shape[1]),
     ]
 )

@@ -39,9 +39,9 @@ class AudioLoader(Dataset):
 
         label = self.meta_data["label_type"].iloc[idx]
 
-        if label == "activate":
+        if label == "start":
             label = 2
-        elif label == "start":
+        elif label == "pause":
             label = 1
         else:
             label = 0
