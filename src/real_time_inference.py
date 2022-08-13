@@ -7,8 +7,6 @@
 import math
 import threading
 import wave
-from isort import file
-
 import pyaudio
 
 

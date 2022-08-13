@@ -3,3 +3,7 @@ my_dummy_model
 inference*
 src/__pycache__
 **/.ipynb_checkpoints/
+**/*.wav
+**/*.mp3
+**/*.pyc
+data/
