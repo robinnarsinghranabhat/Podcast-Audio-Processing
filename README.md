@@ -1,16 +1,17 @@
 # Podcast-Audio-Processing
+
+## Problem in general 
+Control the podcast played in my phone, laptops through my voice input. Stop, Rewind, Take note at that point seperately and continue.
+
+
+## WIP
 Experiment on ways to make listening podcast better
 ## (Corresponding Flask App maintained here)[https://github.com/robinnarsinghranabhat/Audio-Stream-flask] 
 Raw learnings maintained at : 
 https://docs.google.com/document/d/1gaa6yNEmFcRK9GH3IdASxcCh8qLXrKyfxRyarOoeW90/edit?usp=sharing
 
-## Problem in general 
 
-Control the podcast played in my phone, laptops through my voice input. Stop, Rewind, Take note at that point seperately and continue.
-
-
-
-### Potential Learning curve to building this 
+## Potential Learning curve to building this 
 
 
 
@@ -71,8 +72,5 @@ Inference Update : Make inference more real timish
 
     - Make two processes, one records and saves , while, other infers
     - Put them in sync such that, p1 = pool(Record) , p2 = pool(INfer) , p1.join() p2.join() .. don't know
-
-- 
-
 
 
